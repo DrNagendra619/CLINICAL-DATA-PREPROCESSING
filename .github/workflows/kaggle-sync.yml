@@ -1,0 +1,33 @@
+name: Send to Kaggle
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  kaggle-sync:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.9'
+
+    - name: Install Kaggle Tool
+      run: pip install kaggle
+
+    - name: Push to Kaggle
+      env:
+        KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+      run: |
+        # Safety check to ensure metadata exists
+        if [ ! -f "dataset-metadata.json" ]; then
+          echo "Metadata file missing!"
+          exit 1
+        fi
+        
+        # Push the update to Kaggle
+        kaggle datasets version -p . -m "Automated update" --dir-mode zip
